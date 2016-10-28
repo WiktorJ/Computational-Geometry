@@ -1,5 +1,6 @@
 # Jarvis March O(nh) - Tom Switzer <thomas.switzer@gmail.com>
-import csv
+import time
+from custom_file_utils import read_file_to_tuples, write_tuple_to_file
 
 TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
 
@@ -30,21 +31,23 @@ def _next_hull_pt(points, p):
     return q
 
 
-def convex_hull(points):
-    """Returns the points on the convex hull of points in CCW order."""
+def convex_hull(points, data_set_name):
+    write_tuple_to_file(output_dir + data_set_name + "/points.csv", points)
+    start_time = time.time()
     hull = [min(points)]
-    for p in hull:
+    for i, p in enumerate(hull):
         q = _next_hull_pt(points, p)
         if q != hull[0]:
             hull.append(q)
+        write_tuple_to_file(output_dir + data_set_name + "/" + str(i) + ".csv", hull)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
     return hull
 
 
-def read_file_to_tuples(path):
-    print('opening file', path)
-    with open(path) as the_file:
-        return [tuple(line) for line in csv.reader(the_file, delimiter=" ")]
+output_dir = "jarvis/"
 
-
-points = [(float(x), float(y)) for x, y in read_file_to_tuples('data_set_1.csv')]
-print(convex_hull(points))
+convex_hull([(float(x), float(y)) for x, y in read_file_to_tuples('data_set_1.csv')], "jarvis1")
+convex_hull([(float(x), float(y)) for x, y in read_file_to_tuples('data_set_2.csv')], "jarvis2")
+convex_hull([(float(x), float(y)) for x, y in read_file_to_tuples('data_set_3.csv')], "jarvis3")
+convex_hull([(float(x), float(y)) for x, y in read_file_to_tuples('data_set_4.csv')], "jarvis4")
