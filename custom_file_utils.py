@@ -9,11 +9,10 @@ def write_tuple_to_file(path, tuples):
         csv.register_dialect("custom", delimiter=" ", skipinitialspace=True)
         writer = csv.writer(the_file, dialect="custom")
         for tup in tuples:
-            print(tup)
             writer.writerow(tup)
 
 
-def read_file_to_tuples(path):
+def read_file_to_tuples(path, delimiter=" "):
     print('opening file', path)
     with open(path) as the_file:
-        return [tuple(line) for line in csv.reader(the_file, delimiter=" ")]
+        return [tuple(line) for line in csv.reader(the_file, delimiter=delimiter)]
