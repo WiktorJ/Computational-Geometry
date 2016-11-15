@@ -138,3 +138,4 @@ ENV/
 *.csv
 *.txt
 *.png
+!assignment3/data_sets/set2.csv

@@ -62,14 +62,18 @@ class StateSegment:
 
     def __lt__(self, other):
         orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
-        print("Point ", self.orientation_point, " is " + str(orientation) + " to ", other.segment)
-        return True if orientation == ABOVE or (orientation == EQUAL and self.end.y > other.end.y) else False
+        # print("Point ", self.orientation_point, " is " + str(orientation) + " to ", other.segment)
+        return True if orientation == ABOVE or \
+                       (orientation == EQUAL and
+                        get_point_orientation_relative_to_line(self.end, other.segment) == ABOVE) else False
 
-    def __gt__(self, other):
-        orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
-        return True if orientation == BELOW or (orientation == EQUAL and self.end.y < other.end.y) else False
+    # shouldn't be used
+    # def __gt__(self, other):
+    #     orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
+    #     return True if orientation == BELOW or (orientation == EQUAL and self.end.y < other.end.y) else False
 
     def __eq__(self, other):
+        print("EQ")
         return True if get_point_orientation_relative_to_line(self.orientation_point, other.segment) == EQUAL else False
 
 
