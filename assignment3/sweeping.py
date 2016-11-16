@@ -1,8 +1,11 @@
 from assignment3.generator import get_random_segments, save_segments_to_file, get_segments_from_file
 from assignment3.sweep_elements import Segment, Point, Event, EventType, StateSegment, \
-    get_point_orientation_relative_to_line, ABOVE, BELOW
-from custom_file_utils import read_file_to_tuples, write_tuple_to_file
+    get_point_orientation_relative_to_line, ABOVE, BELOW, Intersection
+from custom_file_utils import read_file_to_tuples, write_tuple_to_file, copy_file
 from sortedcontainers import sortedset
+
+intersections = set()
+points = []
 
 
 def read_file_to_event_list(path):
@@ -62,8 +65,11 @@ def add_intersection_if_exists(segment, neighbour, orientation, events):
     if neighbour and segment:
         point = get_intersection_point(segment, neighbour, orientation)
         if point:
-            print("INTERSECTION IN ", point, " FROM SEGMENTS ", segment, " and ", neighbour)
-            events.add(Event(point, [segment, neighbour], EventType.intersection))
+            inter = Intersection(point, segment, neighbour)
+            if inter not in intersections:
+                intersections.add(inter)
+                points.append(point)
+                events.add(Event(point, [segment, neighbour], EventType.intersection))
 
 
 def add_state_and_intersections(state, state_segment, events):
@@ -74,9 +80,33 @@ def add_state_and_intersections(state, state_segment, events):
     add_intersection_if_exists(state_segment.segment, below_neighbour, ABOVE, events)
 
 
-def sweep(data_set):
-    events = sortedset.SortedSet([e for segment in data_set for e in [Event(segment.start, [segment], EventType.start),
-                                                                      Event(segment.end, [segment], EventType.end)]])
+def make_snapshot(point, set_name, snapshot_count):
+    write_tuple_to_file('results/' + set_name + '/snapshot' + str(snapshot_count) + '/intersections.csv',
+                        map(lambda e: e.to_tuple(), intersections))
+    write_tuple_to_file('results/' + set_name + '/snapshot' + str(snapshot_count) + '/point.csv', [point.to_tuple()])
+    write_tuple_to_file('results/' + set_name + '/snapshot' + str(snapshot_count) + '/points.csv',
+                        map(lambda e: e.to_tuple(), points))
+    pass
+
+
+def sweep(set_name):
+    data_set_file_name = 'data_sets/' + set_name + '.csv'
+    data_set = get_segments_from_file(data_set_file_name)
+    copy_file(data_set_file_name, 'results/' + set_name + '/segments.csv')
+    events_list = [e for segment in data_set for e in [Event(segment.start, [segment], EventType.start),
+                                                       Event(segment.end, [segment], EventType.end)]]
+    events = sortedset.SortedSet()
+    for e in events_list:
+        if e in events:
+            print("Two segments intersecting at end or start")
+            index = events.index(e)
+            first_event = events[index]
+            points.append(e.point)
+            intersections.add(Intersection(e.point, e.segments[0], first_event.segments[0]))
+        else:
+            events.add(e)
+
+    snapshot_count = 0
     state = sortedset.SortedList()
     # TODO: check if there is more segments with the same starting point.x
     # first_event = events[0].segments[0]
@@ -94,6 +124,12 @@ def sweep(data_set):
             state_segment = StateSegment(segment)
             above_neighbour = get_above_neighbour(state_segment, state)
             below_neighbour = get_below_neighbour(state_segment, state)
+            if below_neighbour and below_neighbour.end == segment.end:
+                state.remove(StateSegment(below_neighbour))
+                below_neighbour = get_below_neighbour(state_segment, state)
+            if above_neighbour and above_neighbour.end == segment.end:
+                state.remove(StateSegment(above_neighbour))
+                above_neighbour = get_below_neighbour(state_segment, state)
             state.remove(state_segment)
             add_intersection_if_exists(above_neighbour, below_neighbour, ABOVE, events)
         else:
@@ -109,11 +145,13 @@ def sweep(data_set):
             add_state_and_intersections(state, above_segment, events)
 
             add_state_and_intersections(state, below_segment, events)
+        snapshot_count += 1
+        make_snapshot(event.point, set_name, snapshot_count)
 
-    return 'xD'
+    print("Number of intersections: ", len(intersections))
 
 
-sweep(get_segments_from_file('data_sets/set2.csv'))
+# save_segments_to_file('data_sets/set5.csv', get_random_segments(0, 6, 15))
+sweep("set7")
 # sweep(get_random_segments(0, 10, 10))
-# save_segments_to_file('data_sets/set2.csv', get_random_segments(0, 10, 10))
 # write_tuple_to_file('test.csv', map(lambda segment: segment.to_tuple(), get_random_segments(0, 10, 100)))

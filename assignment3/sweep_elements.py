@@ -45,6 +45,9 @@ class Point:
     def __repr__(self, *args, **kwargs):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
 
+    def __hash__(self):
+        return (53 + hash(round(float(self.x), 3))) * 53 + hash(round(float(self.y), 3))
+
 
 class StateSegment:
     def __init__(self, segment):
@@ -61,19 +64,16 @@ class StateSegment:
         return cls(Segment.from_tuple(raw_tuple))
 
     def __lt__(self, other):
-        orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
-        # print("Point ", self.orientation_point, " is " + str(orientation) + " to ", other.segment)
+        if self.orientation_point.x >= other.orientation_point.x:
+            orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
+        else:
+            orientation = -get_point_orientation_relative_to_line(other.orientation_point, self.segment)
+
         return True if orientation == ABOVE or \
                        (orientation == EQUAL and
                         get_point_orientation_relative_to_line(self.end, other.segment) == ABOVE) else False
 
-    # shouldn't be used
-    # def __gt__(self, other):
-    #     orientation = get_point_orientation_relative_to_line(self.orientation_point, other.segment)
-    #     return True if orientation == BELOW or (orientation == EQUAL and self.end.y < other.end.y) else False
-
     def __eq__(self, other):
-        print("EQ")
         return True if get_point_orientation_relative_to_line(self.orientation_point, other.segment) == EQUAL else False
 
 
@@ -83,7 +83,7 @@ class Segment:
         self.start = start
 
     def to_tuple(self):
-        return self.start.to_tuple(), self.end.to_tuple()
+        return self.start.to_tuple() + self.end.to_tuple()
 
     @classmethod
     def from_tuple(cls, raw_tuple):
@@ -108,13 +108,40 @@ class Event:
         self.type = event_type
 
     def __lt__(self, other):
-        return True if self.point.x < other.point.x else False
+        return True if self.point.x < other.point.x or (
+            self.point.x == other.point.x and self.point.y < other.point.y) else False
 
     def __gt__(self, other):
-        return True if self.point.x > other.point.x else False
+        return True if self.point.x > other.point.x or (
+            self.point.x == other.point.x and self.point.y > other.point.y) else False
 
     def __eq__(self, other):
-        return True if self.point.x == other.point.x else False
+        return True if math.isclose(self.point.x, other.point.x, rel_tol=1e-4) and \
+                       math.isclose(self.point.y, other.point.y, rel_tol=1e-4) else False
 
     def __hash__(self, *args, **kwargs):
-        return (53 + hash(round(float(self.point.x), 3))) * 53 + hash(round(float(self.point.y), 3))
+        return hash(self.point)
+
+
+class Intersection(Event):
+    def __init__(self, point, segment1, segment2):
+        super().__init__(point, [segment1, segment2], EventType.intersection)
+        self.segment1 = segment1
+        self.segment2 = segment2
+
+    def to_tuple(self):
+        return self.segment1.to_tuple() + self.segment2.to_tuple()
+
+    def point_to_tuple(self):
+        return self.point.to_tuple()
+
+    def __repr__(self):
+        return "Intersection in point " + str(self.point) + " between segment: " + str(self.segment1) + " and: " + str(
+            self.segment2)
+
+    def __eq__(self, other):
+        return self.segment1 == other.segment1 and self.segment2 == other.segment2
+
+    def __hash__(self, *args, **kwargs):
+        return (((13 + hash(self.segment1.start)) * (11 + hash(self.segment1.end))) * (7 + hash(self.segment2.start)) *
+                (5 + hash(self.segment2.end)))
