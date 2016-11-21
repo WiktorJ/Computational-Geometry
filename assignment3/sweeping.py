@@ -152,6 +152,6 @@ def sweep(set_name):
 
 
 # save_segments_to_file('data_sets/set5.csv', get_random_segments(0, 6, 15))
-sweep("set7")
+sweep("set6")
 # sweep(get_random_segments(0, 10, 10))
 # write_tuple_to_file('test.csv', map(lambda segment: segment.to_tuple(), get_random_segments(0, 10, 100)))

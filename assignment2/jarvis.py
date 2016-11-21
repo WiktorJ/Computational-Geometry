@@ -1,4 +1,3 @@
-# Jarvis March O(nh) - Tom Switzer <thomas.switzer@gmail.com>
 import time
 
 from assignment2.commons import filter_inline_points
@@ -42,14 +41,14 @@ def convex_hull(points, data_set_name):
     # points = sorted(points, key=lambda x: (x[1], x[0]))
     # points = filter_inline_points(points, min_point)
 
-    # write_tuple_to_file(output_dir + data_set_name + "/points.csv", points)
+    write_tuple_to_file(output_dir + data_set_name + "/points.csv", points)
     alg_start_time = time.time()
     hull = [min_point]
     for i, p in enumerate(hull):
         q = _next_hull_pt(points, p)
         if q != hull[0]:
             hull.append(q)
-            # write_tuple_to_file(output_dir + data_set_name + "/" + str(i) + ".csv", hull)
+            write_tuple_to_file(output_dir + data_set_name + "/" + str(i) + ".csv", hull)
 
     print("--- %s ms with sorting ---" % ((time.time() - start_time) * 1000))
     print("--- %s ms without sorting ---" % ((time.time() - alg_start_time) * 1000))

@@ -1,4 +1,3 @@
-# Graham Scan - Tom Switzer <thomas.switzer@gmail.com>
 from functools import cmp_to_key
 import time
 import math
@@ -47,7 +46,7 @@ def _keep_left(hull, r, i, output_dir):
         hull.pop()
     if not len(hull) or hull[-1] != r:
         hull.append(r)
-    # write_tuple_to_file(output_dir + "/" + str(i) + ".csv", hull)
+    write_tuple_to_file(output_dir + "/" + str(i) + ".csv", hull)
     return hull
 
 
@@ -69,7 +68,7 @@ def convex_hull(points, data_set_name):
     points = filtered_points
     points = filter_inline_points(points, min_point)
 
-    # write_tuple_to_file(output_dir + data_set_name + "/points.csv", points)
+    write_tuple_to_file(output_dir + data_set_name + "/points.csv", points)
     alg_start_time = time.time()
     result = []
     for i, p in enumerate(points):
