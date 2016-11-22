@@ -91,6 +91,9 @@ class Node:
 
         return points
 
+    def draw_tree(self):
+        pass
+
     def __repr__(self):
         return pformat((self.points, self.northWest, self.northEast, self.southWest, self.southEast))
 

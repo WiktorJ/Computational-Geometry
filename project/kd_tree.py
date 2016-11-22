@@ -8,6 +8,9 @@ from generator_utils import generate_in_range
 
 k = 2
 
+c_range = ((3, 5), (8, 9))
+draw_range = True
+
 
 class Node:
     def __init__(self, depth, location, left_child, right_child):
@@ -25,14 +28,15 @@ class Node:
     def is_in_range(self, c_range):
         return c_range[0][0] <= self.location[0] <= c_range[1][0] and c_range[0][1] <= self.location[1] <= c_range[1][1]
 
-    def range_search(self, c_range):
-        return self.do_range_search(c_range, [])
+    def range_search(self, c_range, draw):
+        return self.do_range_search(c_range, [], draw)
 
-    def do_range_search(self, c_range, points):
+    def do_range_search(self, c_range, points, draw):
         if self.is_in_range(c_range):
             points.append(self.location)
-            self.left_child.do_range_search(c_range, points)
-            self.right_child.do_range_search(c_range, points)
+            draw(self.location)
+            self.left_child.do_range_search(c_range, points, draw)
+            self.right_child.do_range_search(c_range, points, draw)
         else:
             axis = self.depth % k
 
@@ -41,9 +45,9 @@ class Node:
             range_max = c_range[1][axis]
 
             if current_cord > range_min:
-                self.left_child.do_range_search(c_range, points)
+                self.left_child.do_range_search(c_range, points, draw)
             if current_cord < range_max:
-                self.right_child.do_range_search(c_range, points)
+                self.right_child.do_range_search(c_range, points, draw)
         return points
 
     def insert(self, point):
@@ -74,15 +78,17 @@ class Node:
     def is_full_node(self):
         return True
 
-    def draw_rectangle(self, ax, constrains): #left, bottom, right, up
+    def draw_rectangle(self, ax, constrains):  # left, bottom, right, up
         """Recursively plot a visualization of the KD tree region"""
         if self.depth % k == 0:
-            rect = plt.Rectangle((self.location[0], constrains[1]), constrains[2] - self.location[0], constrains[3] - constrains[1], ec='k', fc='none')
+            rect = plt.Rectangle((self.location[0], constrains[1]), constrains[2] - self.location[0],
+                                 constrains[3] - constrains[1], ec='k', fc='none')
             ax.add_patch(rect)
             self.left_child.draw_rectangle(ax, (constrains[0], constrains[1], self.location[0], constrains[3]))
             self.right_child.draw_rectangle(ax, (self.location[0], constrains[1], constrains[2], constrains[3]))
         else:
-            rect = plt.Rectangle((constrains[0], self.location[1]), constrains[2] - constrains[0], constrains[3] - self.location[1], ec='k', fc='none')
+            rect = plt.Rectangle((constrains[0], self.location[1]), constrains[2] - constrains[0],
+                                 constrains[3] - self.location[1], ec='k', fc='none')
             ax.add_patch(rect)
             self.left_child.draw_rectangle(ax, (constrains[0], constrains[1], constrains[2], self.location[1]))
             self.right_child.draw_rectangle(ax, (constrains[0], self.location[1], constrains[2], constrains[3]))
@@ -95,7 +101,7 @@ class EmptyLeaf(Node):
     def __repr__(self):
         return "_"
 
-    def do_range_search(self, c_range, points):
+    def do_range_search(self, c_range, points, draw):
         return points
 
     def is_full_node(self):
@@ -129,17 +135,29 @@ def main():
     print(tree)
     fig = plt.figure()
     fig.subplots_adjust(wspace=0.1, hspace=0.15,
-                    left=0.1, right=0.9,
-                    bottom=0.05, top=0.9)
+                        left=0.1, right=0.9,
+                        bottom=0.05, top=0.9)
 
-    ax = fig.add_subplot(111)
+    ax = prepare_subplot(fig, point_list, 1)
+    tree.draw_rectangle(ax, (0, 0, 20, 20))
+    if not draw_range:
+        tree.range_search(c_range, lambda *args: None)
+    else:
+        rect = plt.Rectangle(c_range[0], c_range[1][0] - c_range[0][0],
+                             c_range[1][1] - c_range[0][1], ec='k', fc='none', edgecolor='red', linestyle='dashed',
+                             linewidth='3')
+        ax.add_patch(rect)
+        tree.range_search(c_range, lambda point: ax.scatter([point[0]], [point[1]], s=22, color='red'))
+    fig.suptitle('$k$d-tree Example')
+    plt.show()
+
+
+def prepare_subplot(fig, point_list, number):
+    ax = fig.add_subplot(1, 1, number)
     ax.scatter(list(map(lambda e: e[0], point_list)), list(map(lambda e: e[1], point_list)), s=9)
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 10)
-    tree.draw_rectangle(ax, (0, 0, 20, 20))
-
-    fig.suptitle('$k$d-tree Example')
-    plt.show()
+    return ax
 
 
 if __name__ == '__main__':
