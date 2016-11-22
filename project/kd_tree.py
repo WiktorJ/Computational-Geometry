@@ -3,6 +3,7 @@ from operator import itemgetter
 from pprint import pformat
 import numpy as np
 from matplotlib import pyplot as plt
+import time
 
 from generator_utils import generate_in_range
 
@@ -79,17 +80,24 @@ class Node:
         return True
 
     def draw_rectangle(self, ax, constrains):  # left, bottom, right, up
-        """Recursively plot a visualization of the KD tree region"""
         if self.depth % k == 0:
             rect = plt.Rectangle((self.location[0], constrains[1]), constrains[2] - self.location[0],
                                  constrains[3] - constrains[1], ec='k', fc='none')
             ax.add_patch(rect)
+            plt.draw()
+            plt.pause(0.001)
+            input("Press [enter] to continue.")
+
             self.left_child.draw_rectangle(ax, (constrains[0], constrains[1], self.location[0], constrains[3]))
             self.right_child.draw_rectangle(ax, (self.location[0], constrains[1], constrains[2], constrains[3]))
         else:
             rect = plt.Rectangle((constrains[0], self.location[1]), constrains[2] - constrains[0],
                                  constrains[3] - self.location[1], ec='k', fc='none')
             ax.add_patch(rect)
+            plt.draw()
+            plt.pause(0.001)
+            input("Press [enter] to continue.")
+
             self.left_child.draw_rectangle(ax, (constrains[0], constrains[1], constrains[2], self.location[1]))
             self.right_child.draw_rectangle(ax, (constrains[0], self.location[1], constrains[2], constrains[3]))
 
@@ -111,7 +119,7 @@ class EmptyLeaf(Node):
         pass
 
 
-def kdtree(point_list, depth=0):
+def kdtree2(point_list, depth=0):
     if len(point_list) == 0:
         return EmptyLeaf()
     axis = depth % k
@@ -124,15 +132,22 @@ def kdtree(point_list, depth=0):
     return Node(
         depth=depth,
         location=point_list[median],
-        left_child=kdtree(point_list[:median], depth + 1),
-        right_child=kdtree(point_list[median + 1:], depth + 1)
+        left_child=kdtree2(point_list[:median], depth + 1),
+        right_child=kdtree2(point_list[median + 1:], depth + 1)
     )
 
 
+def kdtree(point_list):
+    tree = Node(0, point_list[0], EmptyLeaf(), EmptyLeaf())
+    for point in point_list[1:]:
+        tree.insert(point)
+    return tree
+
 def main():
-    point_list = generate_in_range(0, 10, 15)
+    point_list = generate_in_range(0, 10, 50)
     tree = kdtree(point_list)
-    print(tree)
+    plt.ion()
+    plt.show()
     fig = plt.figure()
     fig.subplots_adjust(wspace=0.1, hspace=0.15,
                         left=0.1, right=0.9,
@@ -147,8 +162,15 @@ def main():
                              c_range[1][1] - c_range[0][1], ec='k', fc='none', edgecolor='red', linestyle='dashed',
                              linewidth='3')
         ax.add_patch(rect)
-        tree.range_search(c_range, lambda point: ax.scatter([point[0]], [point[1]], s=22, color='red'))
-    fig.suptitle('$k$d-tree Example')
+
+        def draw_point(point):
+            ax.scatter([point[0]], [point[1]], s=22, color='red')
+            plt.draw()
+            plt.pause(0.001)
+            input("Press [enter] to continue.")
+
+        tree.range_search(c_range, draw_point)
+    plt.ioff()
     plt.show()
 
 
