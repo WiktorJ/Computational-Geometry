@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import time
 
 from generator_utils import generate_in_range
+from project.draw_utils import prepare_subplot
 
 k = 2
 
@@ -153,7 +154,7 @@ def main():
                         left=0.1, right=0.9,
                         bottom=0.05, top=0.9)
 
-    ax = prepare_subplot(fig, point_list, 1)
+    ax = prepare_subplot(fig, point_list, 1, 1, 1)
     tree.draw_rectangle(ax, (0, 0, 20, 20))
     if not draw_range:
         tree.range_search(c_range, lambda *args: None)
@@ -172,15 +173,6 @@ def main():
         tree.range_search(c_range, draw_point)
     plt.ioff()
     plt.show()
-
-
-def prepare_subplot(fig, point_list, number):
-    ax = fig.add_subplot(1, 1, number)
-    ax.scatter(list(map(lambda e: e[0], point_list)), list(map(lambda e: e[1], point_list)), s=9)
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 10)
-    return ax
-
 
 if __name__ == '__main__':
     main()
