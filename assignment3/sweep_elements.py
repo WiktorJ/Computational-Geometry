@@ -59,7 +59,8 @@ class StateSegment:
     def to_tuple(self):
         return self.segment.to_tuple()
 
-    @classmethod
+
+
     def from_tuple(cls, raw_tuple):
         return cls(Segment.from_tuple(raw_tuple))
 

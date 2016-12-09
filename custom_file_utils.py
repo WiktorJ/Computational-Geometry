@@ -23,3 +23,17 @@ def copy_file(source, destination):
     if os.path.dirname(destination) != '':
         os.makedirs(os.path.dirname(destination), exist_ok=True)
     copyfile(source, destination)
+
+
+def remove_characters(path, to_remove):
+    split_path = path.split('.')
+    out_path = split_path[0] + '_new.csv'
+    with open(path, 'r') as infile, open(out_path, 'w') as outfile:
+        data = infile.read()
+        for char in to_remove:
+            data = data.replace(char, '')
+        outfile.write(data)
+    return out_path
+
+
+
