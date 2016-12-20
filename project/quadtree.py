@@ -266,6 +266,7 @@ def main():
 
     plt.draw()
     input("Press [enter] to finish.")
+    plt.ioff()
     plt.show()
 
 

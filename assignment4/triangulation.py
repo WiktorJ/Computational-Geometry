@@ -5,6 +5,7 @@ from custom_file_utils import remove_characters, read_file_to_tuples, write_tupl
 
 result = []
 
+
 def is_monotonic(points):
     events = sortedset.SortedSet(points)
     while len(events) > 0:
@@ -24,7 +25,7 @@ def is_monotonic(points):
         after = points[after_index]
         vertex_type = VertexType.get_vertex_type(before, event, after)
         if vertex_type == VertexType.SPLIT or vertex_type == VertexType.MERGE:
-            print('Polygon is not monotonic')
+            print('Polygon is not monotonic. Vertex ' + str(event) + " is type of " + str(vertex_type))
             return False
     return True
     pass
@@ -65,12 +66,20 @@ def same_chain_join(stack, stack_top, current_v, comparison_site):
         else:
             finish = True
     stack.append(prev)
-    stack.append(stack_top)
+    if prev != stack_top:
+        stack.append(stack_top)
+    stack.append(current_v)
 
 
 def triangulation(vertexes):
     max_v = max(vertexes)
     min_v = min(vertexes)
+    tmp_v = vertexes.copy()
+    tmp_v.remove(max_v)
+    tmp_max = max(tmp_v)
+    if max_v.x > tmp_max.x:
+        vertexes = list(reversed(vertexes))
+
     min_index = vertexes.index(min_v)
     current_index = min_index
     current_v = min_v
@@ -79,6 +88,8 @@ def triangulation(vertexes):
                                 left_chain_next,
                                 vertexes,
                                 max_v)
+    current_index = min_index
+    current_v = min_v
     right_chain = generate_chain(current_v,
                                  current_index,
                                  right_chain_next,
@@ -88,8 +99,8 @@ def triangulation(vertexes):
     vertexes = sorted(vertexes)
     stack = [vertexes[0], vertexes[1]]
     vertexes = list(reversed(vertexes[2:]))
-    current_v = vertexes.pop()
-    while current_v != max_v:
+    while len(vertexes) > 0:
+        current_v = vertexes.pop()
         stack_top = stack[len(stack) - 1]
         if stack_top in left_chain and current_v in left_chain:  # or stack_top in right_chain and current_v in right_chain:
             same_chain_join(stack, stack_top, current_v, LEFT)
@@ -100,12 +111,13 @@ def triangulation(vertexes):
                 result.append((e, current_v))
                 print("D Joining: ", e, current_v)
             stack = [stack_top, current_v]
-        current_v = vertexes.pop()
 
 
-points_tuples = read_file_to_tuples(remove_characters('data2.csv', ['(', ',', ')']))
+points_tuples = read_file_to_tuples(remove_characters('data5.csv', ['(', ',', ')']))
 
 vertexes = load_to_vertexes(points_tuples)
+
+print(is_monotonic(vertexes))
 
 triangulation(vertexes)
 

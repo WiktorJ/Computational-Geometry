@@ -38,7 +38,7 @@ class VertexType(Enum):
         if current > before and current > after:
             return VertexType.END if direction == LEFT else VertexType.MERGE
         if current < before and current < after:
-            return VertexType.START if direction == RIGHT else VertexType.SPLIT
+            return VertexType.START if direction == LEFT else VertexType.SPLIT
         return VertexType.REGULAR
 
 

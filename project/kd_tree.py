@@ -10,8 +10,8 @@ lims = (0, 10)
 c_range = ((3, 5), (8, 9))
 draw_range = True
 frame_time = 0.0001
-step_draw = True
-points_number = 10
+step_draw = False
+points_number = 50
 
 
 
@@ -260,6 +260,7 @@ def main():
         input("Press [enter] to search.")
         tree.range_search(c_range, get_draw_point(ax, plt, frame_time, step_draw, 22, 'red'))
     input("Press [enter] to finish.")
+    plt.ioff()
     plt.show()
 
 
